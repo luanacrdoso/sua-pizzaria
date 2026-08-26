@@ -1,6 +1,6 @@
 import type { Pizza } from '../types/pizza';
 
-const PIZZAS_MOCK: readonly Pizza[] = [
+const PIZZAS_PADRAO: readonly Pizza[] = [
   {
     id: "1",
     nome: "Margherita Especial",
@@ -78,9 +78,9 @@ export const pizzaService = {
       if (salvoLocal) {
         return JSON.parse(salvoLocal) as readonly Pizza[];
       }
-      return PIZZAS_MOCK;
+      return PIZZAS_PADRAO;
     } catch {
-      return PIZZAS_MOCK;
+      return PIZZAS_PADRAO;
     }
   },
 
