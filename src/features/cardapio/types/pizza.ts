@@ -4,7 +4,7 @@ export interface Pizza {
   readonly id: string;
   readonly nome: string;
   readonly descricao: string;
-  readonly precoBase: string; // Mantido para compatibilidade
+  readonly precoBase: string; 
   readonly precoBrotinho: string;
   readonly precoMedia: string;
   readonly precoGrande: string;
