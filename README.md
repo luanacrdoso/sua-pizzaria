@@ -21,3 +21,6 @@ Abrir no navegador: http://localhost:5173
 
 * **Email:** admin@pizzashop.com
 * **Senha:** admin123
+
+### Aplicação Publicada: 
+* https://sua-pizzaria-three.vercel.app/
