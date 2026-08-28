@@ -35,22 +35,14 @@ export interface DonoPizzaria {
   readonly chavePix?: string;
 }
 
-// Conta única e fixa da equipe da plataforma (não é uma pizzaria e não fica
-// visível nas listas de compradores/donos). Serve só pra gerenciar o site
-// como um todo, ex: remover uma pizzaria mesmo sem ser dono dela.
-const ADMIN_PLATAFORMA = {
-  email: 'admin@pizzashop.com',
-  senha: 'admin123'
-};
-
 interface AuthState {
-  readonly usuarioLogado: { readonly tipo: 'comprador' | 'pizzaria' | 'admin'; readonly email: string } | null;
+  readonly usuarioLogado: { readonly tipo: 'comprador' | 'pizzaria'; readonly email: string } | null;
   readonly compradores: readonly Comprador[];
   readonly donos: readonly DonoPizzaria[];
   readonly credenciais: readonly { readonly email: string; readonly senha: string }[];
   readonly cadastrarComprador: (comprador: Comprador, senha: string) => void;
   readonly cadastrarDono: (dono: DonoPizzaria, senha: string) => void;
-  readonly fazerLogin: (email: string, senha: string) => 'comprador' | 'pizzaria' | 'admin' | null;
+  readonly fazerLogin: (email: string, senha: string) => 'comprador' | 'pizzaria' | null;
   readonly fazerLogout: () => void;
   readonly atualizarComprador: (email: string, dados: Partial<Comprador>) => void;
   readonly atualizarDono: (email: string, dados: Partial<DonoPizzaria>) => void;
@@ -81,11 +73,6 @@ export const useAuthStore = create<AuthState>()(
       },
 
       fazerLogin: (email, senha) => {
-        if (email === ADMIN_PLATAFORMA.email && senha === ADMIN_PLATAFORMA.senha) {
-          set({ usuarioLogado: { tipo: 'admin', email } });
-          return 'admin';
-        }
-
         const conta = get().credenciais.find((c) => c.email === email && c.senha === senha);
         if (!conta) return null;
 

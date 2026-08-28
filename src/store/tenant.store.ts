@@ -30,7 +30,6 @@ interface TenantState {
   readonly tenants: readonly TenantConfig[];
   readonly cadastrarTenant: (novo: TenantConfig) => void;
   readonly atualizarTenantConfig: (id: string, novasConfigs: Partial<TenantConfig>) => void;
-  readonly excluirTenant: (id: string) => void;
   readonly redefinirPadrao: () => void;
 }
 
@@ -44,8 +43,8 @@ export const ADICIONAIS_PADRAO: readonly AdicionalConfig[] = [
 
 const TENANTS_PADRAO: readonly TenantConfig[] = [
   {
-    id: "callidus-pizzas",
-    nome: "Callidus Pizzas",
+    id: "sua-pizzaria-saas",
+    nome: "Sua Pizzaria SaaS (Demo)",
     logotipoUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=100&auto=format&fit=crop&q=80",
     corPrimaria: "#ef4444",
     corSecundaria: "#f59e0b",
@@ -56,10 +55,28 @@ const TENANTS_PADRAO: readonly TenantConfig[] = [
     horarioFuncionamento: "18:00 às 23:30",
     diasFuncionamento: "Terça a Domingo",
     descricao: "Massa de fermentação lenta com ingredientes frescos selecionados.",
-    donoEmail: "admin@pizzashop.com",
+    donoEmail: "admin@admin.com",
     chavePix: "suachavepix@email.com",
     adicionaisDisponiveis: ADICIONAIS_PADRAO,
     telefone: "(11) 99999-9999"
+  },
+  {
+    id: "pizzaria-luigi",
+    nome: "Pizzaria Don Luigi",
+    logotipoUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=100&auto=format&fit=crop&q=80",
+    corPrimaria: "#15803d",
+    corSecundaria: "#ca8a04",
+    taxaEntrega: 5.00,
+    tempoPreparoEstimado: "25-35 min",
+    formasPagamentoAceitas: ["Pix", "Cartão de Crédito"],
+    endereco: "Via della Pizza, 42 - Bairro Italiano",
+    horarioFuncionamento: "18:30 às 23:00",
+    diasFuncionamento: "Quarta a Segunda",
+    descricao: "Tradicionais pizzas de massa finíssima assadas em forno a lenha napolitano.",
+    donoEmail: "luigi@luigi.com",
+    chavePix: "+5511999999999",
+    adicionaisDisponiveis: ADICIONAIS_PADRAO,
+    telefone: "(11) 98888-8888"
   }
 ];
 
@@ -77,18 +94,14 @@ export const useTenantStore = create<TenantState>()(
             t.id === id ? { ...t, ...novasConfigs } : t
           )
         })),
-      excluirTenant: (id) =>
-        set((state) => ({
-          tenants: state.tenants.filter((t) => t.id !== id)
-        })),
       redefinirPadrao: () => set({ tenants: TENANTS_PADRAO })
     }),
     {
       name: 'sua-pizzaria-saas-tenants',
       // Versão 2: campo "telefone" passou a ser obrigatório no TenantConfig.
       // Sem essa migração, quem já tinha dados salvos de uma versão anterior
-      // (sem telefone) recebia undefined e a tela de status quebrava ao
-      // chamar .replace() nesse valor.
+      // (sem telefone) recebia `undefined` e a tela de status quebrava ao
+      // chamar `.replace()` nesse valor.
       version: 2,
       migrate: (persistedState, versionPersistida) => {
         const estado = persistedState as TenantState;
