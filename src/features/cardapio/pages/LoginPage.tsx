@@ -31,6 +31,8 @@ export function LoginPage() {
       } else {
         navigate('/');
       }
+    } else if (tipo === 'admin') {
+      navigate('/admin-plataforma');
     } else {
       setErro('E-mail ou senha incorretos. Verifique suas credenciais.');
     }
@@ -49,7 +51,7 @@ export function LoginPage() {
     <div className="auth-page-wrapper">
       <div className="auth-card-fazer-login">
         <h2>Login</h2>
-        
+
         {erro && <div className="auth-erro">{erro}</div>}
         {mensagemRecuperacao && <div className="auth-sucesso">{mensagemRecuperacao}</div>}
 

@@ -35,6 +35,12 @@ export interface DonoPizzaria {
   readonly chavePix?: string;
 }
 
+// CONTA FIXA DO ADMINISTRADOR DA PLATAFORMA
+const ADMIN_PLATAFORMA = {
+  email: 'admin@pizzashop.com',
+  senha: 'admin123'
+};
+
 interface AuthState {
   readonly usuarioLogado: { readonly tipo: 'comprador' | 'pizzaria' | 'admin'; readonly email: string } | null;
   readonly compradores: readonly Comprador[];
@@ -42,7 +48,7 @@ interface AuthState {
   readonly credenciais: readonly { readonly email: string; readonly senha: string }[];
   readonly cadastrarComprador: (comprador: Comprador, senha: string) => void;
   readonly cadastrarDono: (dono: DonoPizzaria, senha: string) => void;
-  readonly fazerLogin: (email: string, senha: string) => 'comprador' | 'pizzaria' | null;
+  readonly fazerLogin: (email: string, senha: string) => 'comprador' | 'pizzaria' | 'admin' | null;
   readonly fazerLogout: () => void;
   readonly atualizarComprador: (email: string, dados: Partial<Comprador>) => void;
   readonly atualizarDono: (email: string, dados: Partial<DonoPizzaria>) => void;
@@ -73,6 +79,12 @@ export const useAuthStore = create<AuthState>()(
       },
 
       fazerLogin: (email, senha) => {
+        // Valida primeiro se é a conta do super-admin geral
+        if (email === ADMIN_PLATAFORMA.email && senha === ADMIN_PLATAFORMA.senha) {
+          set({ usuarioLogado: { tipo: 'admin', email } });
+          return 'admin';
+        }
+
         const conta = get().credenciais.find((c) => c.email === email && c.senha === senha);
         if (!conta) return null;
 

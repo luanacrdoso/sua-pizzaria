@@ -20,7 +20,7 @@ interface CarrinhoState {
   readonly adicionarItem: (tenantId: string, item: Omit<ItemCarrinho, 'idUnico' | 'precoUnitario' | 'tenantId'>) => void;
   readonly removerItem: (idUnico: string) => void;
   readonly atualizarQuantidade: (idUnico: string, quantidade: number) => void;
-  readonly esvaviarCarrinhoDoTenant: (tenantId: string) => void;
+  readonly esvaziarCarrinhoDoTenant: (tenantId: string) => void;
   readonly obterTotalItens: (tenantId: string) => number;
   readonly obterSubtotal: (tenantId: string) => number;
 }
@@ -32,7 +32,7 @@ export const useCarrinhoStore = create<CarrinhoState>()(
 
       adicionarItem: (tenantId, novoItem) => {
         const saboresSlug = novoItem.saboresSelecionados ? novoItem.saboresSelecionados.join('-') : 'unico';
-        const idUnico = ${tenantId}-${novoItem.pizza.id}-${novoItem.tamanho}-${novoItem.borda}-${novoItem.extras.join('-')}-${saboresSlug};
+        const idUnico = `${tenantId}-${novoItem.pizza.id}-${novoItem.tamanho}-${novoItem.borda}-${novoItem.extras.join('-')}-${saboresSlug}`;
 
         // Custo com base no tamanho selecionado na pizza
         let precoBaseTamanho = Number(novoItem.pizza.precoBrotinho);
@@ -79,7 +79,7 @@ export const useCarrinhoStore = create<CarrinhoState>()(
         }));
       },
 
-      esvaviarCarrinhoDoTenant: (tenantId) => set((state) => ({
+      esvaziarCarrinhoDoTenant: (tenantId) => set((state) => ({
         itens: state.itens.filter((item) => item.tenantId !== tenantId)
       })),
 

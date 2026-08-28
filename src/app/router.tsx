@@ -12,6 +12,7 @@ import { CheckoutPage } from '../features/cardapio/pages/CheckoutPage';
 import { PagamentoPixPage } from '../features/cardapio/pages/PagamentoPixPage';
 import { StatusPedidoPage } from '../features/cardapio/pages/StatusPedidoPage';
 import { AdminPage } from '../features/admin/pages/AdminPage';
+import { PainelSuperAdminPage } from '../features/admin/pages/PainelSuperAdminPage'; // <-- IMPORTANTE: Adicionado aqui!
 
 export const router = createBrowserRouter([
   {
@@ -33,6 +34,10 @@ export const router = createBrowserRouter([
   {
     path: '/perfil-comprador',
     element: <PerfilCompradorPage />
+  },
+  {
+    path: '/admin-plataforma', // <-- IMPORTANTE: Rota cadastrada aqui!
+    element: <PainelSuperAdminPage />
   },
   {
     path: '/store/:tenantId',

@@ -31,7 +31,7 @@ export function PortalPage() {
       <header className="portal-top-bar">
         <div className="portal-logo">
           <span>🍕</span>
-          <h1>PizzaShop SaaS</h1>
+          <h1>Sua Pizzaria</h1>
         </div>
         <div className="portal-top-acoes">
           {usuarioLogado ? (
@@ -55,13 +55,11 @@ export function PortalPage() {
 
       <section className="portal-hero">
         <div className="hero-content">
-          <span className="portal-badge">⚡ Plataforma SaaS Multi-Estabelecimento</span>
           <h2>A sua pizza favorita, a um clique de distância.</h2>
-          <p>O ecossistema que conecta os melhores parceiros aos clientes mais famintos, tudo com identidade visual própria.</p>
           
           <div className="portal-cta-botoes">
-            <Link to="/cadastrar-pizzaria" className="btn-cta-pizzaria">Lançar Minha Pizzaria SaaS 🚀</Link>
-            <Link to="/cadastrar-usuario" className="btn-cta-usuario">Criar Conta de Comprador 🛒</Link>
+            <Link to="/cadastrar-pizzaria" className="btn-cta-pizzaria">Lançar Minha Pizzaria </Link>
+            <Link to="/cadastrar-usuario" className="btn-cta-usuario">Criar Conta de Comprador</Link>
           </div>
         </div>
       </section>
