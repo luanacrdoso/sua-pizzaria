@@ -21,8 +21,3 @@ Abrir no navegador: http://localhost:5173
 
 * **Email:** admin@pizzashop.com
 * **Senha:** admin123
-
-### Conta de teste cadastrada para dono de pizzaria
-
-* **Email:** callidus@grupo3.com
-* **Senha:** equipe3
