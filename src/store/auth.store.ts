@@ -36,7 +36,7 @@ export interface DonoPizzaria {
 }
 
 interface AuthState {
-  readonly usuarioLogado: { readonly tipo: 'comprador' | 'pizzaria'; readonly email: string } | null;
+  readonly usuarioLogado: { readonly tipo: 'comprador' | 'pizzaria' | 'admin'; readonly email: string } | null;
   readonly compradores: readonly Comprador[];
   readonly donos: readonly DonoPizzaria[];
   readonly credenciais: readonly { readonly email: string; readonly senha: string }[];
