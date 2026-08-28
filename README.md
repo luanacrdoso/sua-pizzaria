@@ -1,32 +1,9 @@
-# React + TypeScript + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Sua Pizzaria
+Plataforma SaaS White-Label Multi-Tenant de venda de pizzas online. Desenvolvido com React, TypeScript, Vite e Zustand.
+Como rodar o projeto localmente
+Instalar as dependencias: npm install
+Rodar o projeto em modo de desenvolvimento: npm run dev
+Abrir no navegador: http://localhost:5173
+Como testar os fluxos
+Portal Principal (Home): Acesse http://localhost:5173 para visualizar a listagem de pizzarias, cadastrar novos compradores ou cadastrar uma nova pizzaria parceira.
+Cardapio da Pizzaria de Exemplo: Acesse http://localhost:5173/store/callidus-pizzas para visualizar a loja de testes configurada no sistema.
