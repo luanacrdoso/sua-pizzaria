@@ -1,137 +1,216 @@
-import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useCarrinhoStore } from '../../../store/carrinho.store';
-import { useTenantStore } from '../../../store/tenant.store';
+import { useRestauranteStore } from '../../../store/restaurante.store';
 import { useAuthStore } from '../../../store/auth.store';
+import { useContasStore } from '../../../store/contas.store';
+import { usePedidosStore } from '../../../store/pedidos.store';
+import type { ItemPedido, Pedido, TipoPedido } from '../../../types';
 
 export function CheckoutPage() {
-  const { tenantId } = useParams<{ readonly tenantId: string }>();
   const navigate = useNavigate();
+  const config = useRestauranteStore((state) => state.config);
+  const { mesas, ocuparMesaSemGarcom } = useRestauranteStore();
+  const { itens, obterSubtotal, esvaziarCarrinho } = useCarrinhoStore();
+  const usuarioLogado = useAuthStore((state) => state.usuarioLogado);
+  const clientes = useContasStore((state) => state.clientes);
+  const criarPedido = usePedidosStore((state) => state.criarPedido);
 
-  const config = useTenantStore((state) => state.tenants.find((t) => t.id === tenantId));
-  const { usuarioLogado, compradores } = useAuthStore();
-  const { itens, obterSubtotal } = useCarrinhoStore();
+  const cliente = clientes.find((c) => c.username === usuarioLogado?.username);
 
-  const dadosComprador = compradores.find(c => c.email === usuarioLogado?.email);
-
-  const [nome, setNome] = useState(dadosComprador ? `${dadosComprador.nome} ${dadosComprador.sobrenome}` : '');
-  const [telefone, setTelefone] = useState(dadosComprador ? dadosComprador.telefone : '');
-  const [endereco, setEndereco] = useState(
-    dadosComprador 
-      ? `${dadosComprador.rua}, ${dadosComprador.numero} - ${dadosComprador.bairro}, ${dadosComprador.cidade}/${dadosComprador.estado} (${dadosComprador.pontoReferencia || 'Sem referência'})`
-      : ''
-  );
-  const [formaPagamento, setFormaPagamento] = useState('');
-  const [processando, setProcessando] = useState(false);
+  const [tipoPedido, setTipoPedido] = useState<TipoPedido>('entrega');
+  const [endereco, setEndereco] = useState(cliente ? `${cliente.rua}, ${cliente.numero} - ${cliente.bairro}, ${cliente.cidade}/${cliente.estado}` : '');
+  const [mesaId, setMesaId] = useState('');
+  const [quererGorjeta, setQuererGorjeta] = useState(false);
+  const [cpfNota, setCpfNota] = useState(cliente?.cpf || '');
+  const [formaPagamento, setFormaPagamento] = useState(config.formasPagamentoAceitas[0] || 'Pix');
   const [erro, setErro] = useState('');
 
-  if (!config) return null;
+  const mesaEscolhida = mesas.find((m) => m.id === mesaId);
+  const subtotal = obterSubtotal();
+  const taxaEntrega = tipoPedido === 'entrega' ? config.taxaEntrega : 0;
+  const total = subtotal + taxaEntrega;
 
-  const itensDoTenant = itens.filter(item => item.tenantId === config.id);
-  const subtotal = obterSubtotal(config.id);
-  const total = subtotal + config.taxaEntrega;
+  if (!usuarioLogado || usuarioLogado.papel !== 'cliente') {
+    return (
+      <div className="auth-page-wrapper">
+        <div className="auth-card-fazer-login">
+          <p>Você precisa estar logado como cliente para finalizar um pedido.</p>
+          <Link to="/login" className="btn-auth-submit text-center">Ir para o Login</Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (itens.length === 0) {
+    return (
+      <div className="status-container vazio">
+        <span>🛒</span>
+        <p>Seu carrinho está vazio.</p>
+        <Link to="/" className="btn-recarregar" style={{ backgroundColor: config.corPrimaria }}>Ir para o Cardápio</Link>
+      </div>
+    );
+  }
 
   const handleFinalizar = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nome || !telefone || !endereco || !formaPagamento) {
-      setErro("Por favor, preencha todos os campos obrigatórios.");
+    setErro('');
+
+    if (tipoPedido === 'entrega' && !endereco.trim()) {
+      setErro('Informe o endereço de entrega.');
+      return;
+    }
+    if (tipoPedido === 'presencial' && !mesaId) {
+      setErro('Escolha a mesa em que você está.');
       return;
     }
 
-    setProcessando(true);
-    setErro('');
+    // Se a mesa ainda estava livre, o pedido já a ocupa, como se o garçom assumisse aquela mesa.
+    if (tipoPedido === 'presencial' && mesaEscolhida?.status === 'livre') {
+      ocuparMesaSemGarcom(mesaEscolhida.id);
+    }
 
-    setTimeout(() => {
-      setProcessando(false);
-      const orderId = Math.floor(1000 + Math.random() * 9000).toString();
-      
-      const dadosPedido = {
-        id: orderId,
-        tenantId: config.id,
-        cliente: nome,
-        itens: itensDoTenant.map(i => `${i.quantidade}x ${i.pizza.nome} (${i.tamanho})`),
-        total: total,
-        status: 'recebido',
-        pagamento: formaPagamento,
-        avaliacaoEstrelas: 0,
-        avaliacaoComentario: '',
-        confirmadoEntrega: false
-      };
+    const orderId = Math.floor(1000 + Math.random() * 9000).toString();
 
-      localStorage.setItem(`pizzashop-pedido-ativo-${config.id}`, JSON.stringify(dadosPedido));
+    const itensPedido: readonly ItemPedido[] = itens.map((item, idx) => ({
+      id: `${orderId}-${idx}-${Date.now()}`,
+      pizzaId: item.pizza.id,
+      nome: item.pizza.nome,
+      imagemUrl: item.pizza.imagemUrl,
+      tamanho: item.tamanho,
+      extras: item.extras,
+      saboresSelecionados: item.saboresSelecionados,
+      observacoes: item.observacoes,
+      quantidade: item.quantidade,
+      precoUnitario: item.precoUnitario,
+      servido: false
+    }));
 
-      if (formaPagamento === 'Pix') {
-        navigate(`/store/${config.id}/checkout/pagamento`);
-      } else {
-        navigate(`/store/${config.id}/status/${orderId}`);
-      }
-    }, 1500);
+    const pedido: Pedido = {
+      id: orderId,
+      tipo: tipoPedido,
+      clienteUsername: usuarioLogado.username,
+      clienteNome: cliente?.nome || usuarioLogado.username,
+      clienteTelefone: cliente?.telefone || '',
+      itens: itensPedido,
+      subtotal,
+      taxaEntrega,
+      total,
+      formaPagamento,
+      cpfNota: cpfNota || undefined,
+      enderecoEntrega: tipoPedido === 'entrega' ? endereco : undefined,
+      mesaId: tipoPedido === 'presencial' ? mesaId : undefined,
+      gorjeta: tipoPedido === 'presencial' && quererGorjeta && mesaEscolhida?.garcomResponsavelUsername
+        ? { percentual: 10, valor: subtotal * 0.10, garcomUsername: mesaEscolhida.garcomResponsavelUsername, confirmadaPeloGarcom: false }
+        : undefined,
+      status: 'recebido',
+      criadoEm: Date.now()
+    };
+
+    criarPedido(pedido);
+
+    if (formaPagamento === 'Pix') {
+      sessionStorage.setItem('callidus-pedido-pendente-pix', orderId);
+      navigate('/pagamento');
+    } else {
+      esvaziarCarrinho();
+      navigate(`/pedido/${orderId}`);
+    }
   };
-
-  if (itensDoTenant.length === 0) return <div className="status-container erro">Carrinho vazio para esta pizzaria.</div>;
 
   return (
     <div className="container-checkout">
-      <h2>Checkout do Pedido</h2>
-      
-      {processando ? (
-        <div className="status-container processando">
-          <div className="loading-spinner"></div>
-          <h3>Simulando Gateway de Pagamento...</h3>
-          <p>Seus dados de pagamento estão sendo processados de forma segura.</p>
+      <h2>Finalizar Pedido</h2>
+      {erro && <div className="auth-erro">{erro}</div>}
+
+      <form onSubmit={handleFinalizar} className="checkout-form">
+        <div className="form-secao">
+          <h3>Como você quer receber seu pedido?</h3>
+          <div className="pagamentos-opcoes">
+            <label className="opcao-pagamento-radio">
+              <input type="radio" name="tipoPedido" checked={tipoPedido === 'entrega'} onChange={() => setTipoPedido('entrega')} />
+              🛵 Entrega no meu endereço
+            </label>
+            <label className="opcao-pagamento-radio">
+              <input type="radio" name="tipoPedido" checked={tipoPedido === 'presencial'} onChange={() => setTipoPedido('presencial')} />
+              🍽️ Vou comer na pizzaria (presencial)
+            </label>
+            <label className="opcao-pagamento-radio">
+              <input type="radio" name="tipoPedido" checked={tipoPedido === 'retirada'} onChange={() => setTipoPedido('retirada')} />
+              🏠 Vou retirar no balcão
+            </label>
+          </div>
         </div>
-      ) : (
-        <form onSubmit={handleFinalizar} className="checkout-form">
+
+        {tipoPedido === 'entrega' && (
           <div className="form-secao">
-            <h3>📝 Dados de Entrega</h3>
-            {erro && <p className="mensagem-erro-valida">{erro}</p>}
-            
+            <h3>Endereço de Entrega</h3>
             <div className="input-group">
-              <label>Seu Nome Completo *</label>
-              <input type="text" value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: João da Silva" required />
-            </div>
-
-            <div className="input-group">
-              <label>Telefone de Contato *</label>
-              <input type="text" value={telefone} onChange={e => setTelefone(e.target.value)} placeholder="Ex: (11) 99999-9999" required />
-            </div>
-
-            <div className="input-group">
-              <label>Endereço de Entrega Completo *</label>
-              <input type="text" value={endereco} onChange={e => setEndereco(e.target.value)} placeholder="Ex: Rua, Número, Bairro, Cidade/UF..." required />
+              <label>Endereço completo:</label>
+              <input type="text" value={endereco} onChange={(e) => setEndereco(e.target.value)} required />
             </div>
           </div>
+        )}
 
+        {tipoPedido === 'presencial' && (
           <div className="form-secao">
-            <h3>💳 Método de Pagamento</h3>
-            <p className="subtext">Opções aceitas por {config.nome}:</p>
-            <div className="pagamentos-opcoes">
-              {config.formasPagamentoAceitas.map(op => (
-                <label key={op} className="opcao-pagamento-radio">
-                  <input
-                    type="radio"
-                    name="pagamento"
-                    value={op}
-                    checked={formaPagamento === op}
-                    onChange={() => setFormaPagamento(op)}
-                  />
-                  <span>{op}</span>
-                </label>
-              ))}
-            </div>
-
-            <div className="resumo-financeiro-checkout">
-              <div className="resumo-linha"><span>Subtotal:</span><span>R$ {subtotal.toFixed(2)}</span></div>
-              <div className="resumo-linha"><span>Taxa de Entrega:</span><span>R$ {config.taxaEntrega.toFixed(2)}</span></div>
-              <div className="resumo-linha total"><span>Total a pagar:</span><span>R$ {total.toFixed(2)}</span></div>
-            </div>
-
-            <button type="submit" className="btn-finalizar" style={{ backgroundColor: config.corPrimaria }}>
-              {formaPagamento === 'Pix' ? 'Gerar QR Code do PIX ⚡' : 'Finalizar Compra 🍕'}
-            </button>
+            <h3>Sua Mesa</h3>
+            {mesas.length === 0 ? (
+              <p className="subtext">A pizzaria ainda não cadastrou mesas. Peça para um funcionário anotar seu pedido.</p>
+            ) : (
+              <div className="input-group">
+                <label>Selecione sua mesa:</label>
+                <select value={mesaId} onChange={(e) => setMesaId(e.target.value)} required>
+                  <option value="">Selecione...</option>
+                  {mesas.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      Mesa {m.numero}{m.garcomResponsavelUsername ? ` (garçom: ${m.garcomResponsavelUsername})` : m.status === 'ocupada' ? ' (aguardando garçom)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {mesaEscolhida?.garcomResponsavelUsername && (
+              <label className="opcao-pagamento-radio">
+                <input type="checkbox" checked={quererGorjeta} onChange={(e) => setQuererGorjeta(e.target.checked)} />
+                Deixar 10% de gorjeta para o garçom (R$ {(subtotal * 0.10).toFixed(2)}) — sujeito à confirmação do garçom
+              </label>
+            )}
           </div>
-        </form>
-      )}
+        )}
+
+        <div className="form-secao">
+          <h3>Forma de Pagamento</h3>
+          <div className="pagamentos-opcoes">
+            {config.formasPagamentoAceitas.map((forma) => (
+              <label key={forma} className="opcao-pagamento-radio">
+                <input type="radio" name="formaPagamento" checked={formaPagamento === forma} onChange={() => setFormaPagamento(forma)} />
+                {forma}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="form-secao">
+          <h3>Nota Fiscal</h3>
+          <div className="input-group">
+            <label>CPF na nota (opcional):</label>
+            <input type="text" value={cpfNota} onChange={(e) => setCpfNota(e.target.value)} placeholder="000.000.000-00" />
+          </div>
+        </div>
+
+        <div className="form-secao">
+          <div className="resumo-financeiro-checkout">
+            <div className="resumo-linha"><span>Subtotal:</span><span>R$ {subtotal.toFixed(2)}</span></div>
+            <div className="resumo-linha"><span>Taxa de Entrega:</span><span>R$ {taxaEntrega.toFixed(2)}</span></div>
+            {tipoPedido === 'presencial' && quererGorjeta && mesaEscolhida?.garcomResponsavelUsername && (
+              <div className="resumo-linha"><span>Gorjeta (10%):</span><span>R$ {(subtotal * 0.10).toFixed(2)}</span></div>
+            )}
+            <div className="resumo-linha total"><span>Total:</span><span>R$ {total.toFixed(2)}</span></div>
+          </div>
+          <button type="submit" className="btn-finalizar" style={{ backgroundColor: config.corPrimaria }}>Confirmar Pedido</button>
+        </div>
+      </form>
     </div>
   );
 }
