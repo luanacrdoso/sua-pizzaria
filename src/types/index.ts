@@ -1,3 +1,6 @@
+// Tipos compartilhados do domínio. Centralizados aqui porque agora são
+// usados por várias stores diferentes (cardápio, pedidos, mesas, auth).
+
 export type Papel = 'admin' | 'balcao' | 'cliente' | 'cozinha' | 'garcom' | 'motoboy';
 
 export type CategoriaPizza = 'tradicional' | 'especial' | 'vegetariana' | 'doce' | 'bebida' | 'combo';
@@ -20,12 +23,17 @@ export interface Pizza {
   readonly precoMedia: string;
   readonly precoGrande: string;
   readonly tipo: 'sabor_unico' | 'personalizavel';
+  // Para pizzas personalizáveis: quais sabores (ids de pizzas "sabor_unico")
+  // o admin/cozinha liberou para o cliente escolher nessa pizza montada.
   readonly saboresPermitidosIds?: readonly string[];
   readonly maxSaboresBrotinho?: number;
   readonly maxSaboresMedia?: number;
   readonly maxSaboresGrande?: number;
 }
 
+// Checkpoints únicos do pedido, na ordem em que acontecem. O rótulo exibido
+// no passo "entregue" muda conforme o tipo (Servido / Entregue), mas é o
+// mesmo valor internamente — ver ROTULO_ENTREGUE em StatusPedidoPage.
 export type StatusPedido = 'recebido' | 'preparo' | 'pronto' | 'entregue' | 'finalizado';
 
 export type TipoPedido = 'entrega' | 'presencial' | 'retirada';
