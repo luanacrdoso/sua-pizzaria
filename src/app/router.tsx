@@ -1,76 +1,39 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { Layout } from '../components/Layout';
-import { PortalPage } from '../features/cardapio/pages/PortalPage';
-import { LoginPage } from '../features/cardapio/pages/LoginPage';
-import { CadastroUsuarioPage } from '../features/cardapio/pages/CadastroUsuarioPage';
-import { CadastroPizzariaPage } from '../features/cardapio/pages/CadastroPizzariaPage';
-import { PerfilCompradorPage } from '../features/cardapio/pages/PerfilCompradorPage';
-import { CardapioPage } from '../features/cardapio/pages/CardapioPage';
-import { DetalhePizzaPage } from '../features/cardapio/pages/DetalhePizzaPage';
-import { CarrinhoPage } from '../features/cardapio/pages/CarrinhoPage';
-import { CheckoutPage } from '../features/cardapio/pages/CheckoutPage';
-import { PagamentoPixPage } from '../features/cardapio/pages/PagamentoPixPage';
-import { StatusPedidoPage } from '../features/cardapio/pages/StatusPedidoPage';
-import { AdminPage } from '../features/admin/pages/AdminPage';
-import { PainelSuperAdminPage } from '../features/admin/pages/PainelSuperAdminPage'; // <-- IMPORTANTE: Adicionado aqui!
+import { HomePage } from '../features/site/pages/HomePage';
+import { LoginPage } from '../features/site/pages/LoginPage';
+import { CadastroPage } from '../features/site/pages/CadastroPage';
+import { DetalhePizzaPage } from '../features/site/pages/DetalhePizzaPage';
+import { CarrinhoPage } from '../features/site/pages/CarrinhoPage';
+import { CheckoutPage } from '../features/site/pages/CheckoutPage';
+import { PagamentoPage } from '../features/site/pages/PagamentoPage';
+import { StatusPedidoPage } from '../features/site/pages/StatusPedidoPage';
+import { PerfilClientePage } from '../features/site/pages/PerfilClientePage';
+import { AdminSitePage } from '../features/admin/pages/AdminSitePage';
+import { BalcaoPage } from '../features/balcao/pages/BalcaoPage';
+import { CozinhaPage } from '../features/cozinha/pages/CozinhaPage';
+import { GarcomPage } from '../features/garcom/pages/GarcomPage';
+import { MotoboyPage } from '../features/motoboy/pages/MotoboyPage';
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <PortalPage />
-  },
-  {
-    path: '/login',
-    element: <LoginPage />
-  },
-  {
-    path: '/cadastrar-usuario',
-    element: <CadastroUsuarioPage />
-  },
-  {
-    path: '/cadastrar-pizzaria',
-    element: <CadastroPizzariaPage />
-  },
-  {
-    path: '/perfil-comprador',
-    element: <PerfilCompradorPage />
-  },
-  {
-    path: '/admin-plataforma', // <-- IMPORTANTE: Rota cadastrada aqui!
-    element: <PainelSuperAdminPage />
-  },
-  {
-    path: '/store/:tenantId',
     element: <Layout />,
     children: [
-      {
-        path: '',
-        element: <CardapioPage />
-      },
-      {
-        path: 'pizza/:id',
-        element: <DetalhePizzaPage />
-      },
-      {
-        path: 'carrinho',
-        element: <CarrinhoPage />
-      },
-      {
-        path: 'checkout',
-        element: <CheckoutPage />
-      },
-      {
-        path: 'checkout/pagamento',
-        element: <PagamentoPixPage />
-      },
-      {
-        path: 'status/:orderId',
-        element: <StatusPedidoPage />
-      },
-      {
-        path: 'admin',
-        element: <AdminPage />
-      }
+      { path: '', element: <HomePage /> },
+      { path: 'login', element: <LoginPage /> },
+      { path: 'cadastro', element: <CadastroPage /> },
+      { path: 'pizza/:id', element: <DetalhePizzaPage /> },
+      { path: 'carrinho', element: <CarrinhoPage /> },
+      { path: 'checkout', element: <CheckoutPage /> },
+      { path: 'pagamento', element: <PagamentoPage /> },
+      { path: 'pedido/:orderId', element: <StatusPedidoPage /> },
+      { path: 'perfil', element: <PerfilClientePage /> },
+      { path: 'admin', element: <AdminSitePage /> },
+      { path: 'balcao', element: <BalcaoPage /> },
+      { path: 'cozinha', element: <CozinhaPage /> },
+      { path: 'garcom', element: <GarcomPage /> },
+      { path: 'motoboy', element: <MotoboyPage /> }
     ]
   }
 ]);
