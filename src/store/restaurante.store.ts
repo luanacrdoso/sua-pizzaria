@@ -46,6 +46,9 @@ interface RestauranteState {
   readonly removerAdicional: (id: string) => void;
   readonly cadastrarMesas: (quantidade: number, capacidade: number) => void;
   readonly assumirMesa: (mesaId: string, garcomUsername: string) => void;
+  // Ocupa a mesa sem atribuir garçom ainda — usado quando o cliente faz o
+  // pedido presencial direto pelo site antes de qualquer garçom "assumir"
+  // a mesa. Fica "aguardando atendimento" até um garçom assumir.
   readonly ocuparMesaSemGarcom: (mesaId: string) => void;
   readonly liberarMesa: (mesaId: string) => void;
 }

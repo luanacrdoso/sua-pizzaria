@@ -7,11 +7,12 @@ interface PedidosState {
   readonly pedidos: readonly Pedido[];
   readonly criarPedido: (pedido: Pedido) => void;
   readonly atualizarStatus: (pedidoId: string, status: StatusPedido) => void;
-  // Adiciona a gorjeta de 10% a uma comanda que ainda não tinha.
+  // Adiciona a gorjeta de 10% a uma comanda que ainda não tinha (ex: mesa
+  // ainda não tinha garçom no momento em que o pedido foi criado).
   readonly definirGorjeta: (pedidoId: string, garcomUsername: string) => void;
   readonly confirmarGorjeta: (pedidoId: string) => void;
-  // Motoboy assume a responsabilidade da entrega,
-  // sem necessariamente mudar o status ainda.
+  // Motoboy assume a responsabilidade da entrega (fica marcado o nome dele),
+  // sem necessariamente mudar o status ainda — ele mesmo confirma depois.
   readonly assumirEntrega: (pedidoId: string, motoboyUsername: string) => void;
   readonly confirmarEntregaCliente: (pedidoId: string) => void;
   readonly avaliarPedido: (pedidoId: string, estrelas: number, comentario: string) => void;
@@ -19,7 +20,7 @@ interface PedidosState {
   // enquanto ele não estiver finalizado.
   readonly adicionarItensAoPedido: (pedidoId: string, novosItens: readonly ItemPedido[]) => void;
   readonly marcarItemServido: (pedidoId: string, itemId: string, servido: boolean) => void;
-  // Fecha a comanda/pedido como paga.
+  // Fecha a comanda/pedido como paga — passo final, depois de "entregue".
   readonly finalizarPedido: (pedidoId: string) => void;
 }
 
@@ -45,7 +46,7 @@ export const usePedidosStore = create<PedidosState>()(
         })),
 
       // A gorjeta de 10% (pedidos presenciais) só entra na conta de ganhos
-      // do garçom depois que ele mesmo confirma que recebeu, evitando que o
+      // do garçom depois que ele mesmo confirma que recebeu — evita que o
       // cliente marque a opção e o valor já contar como "garantido" antes
       // da confirmação humana.
       confirmarGorjeta: (pedidoId) =>
