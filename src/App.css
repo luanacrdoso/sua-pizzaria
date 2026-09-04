@@ -4,11 +4,11 @@
   /* Cor da plataforma (fora do contexto de uma loja) */
   --ink: #2A2118;
   --ink-soft: #5B5045;
-  --ink-faint: #8A7F71;
+  --ink-faint: #6B6055;
   --cream: #FBF7EF;
   --cream-2: #F3EAD8;
   --surface: #FFFFFF;
-  --border: #E7DCC7;
+  --border: #D9CAAE;
   --border-soft: #F0E7D6;
 
   --gold: #BD7A24;
@@ -22,8 +22,7 @@
   --info: #3A6EA5;
   --info-tint: #E6EFF9;
 
-  /* Cor da loja ativa — sobrescrita pelo Layout.tsx via inline style;
-     valores abaixo são apenas um fallback fora de uma loja. */
+
   --color-primary: var(--gold);
   --color-secondary: var(--gold-dark);
 
@@ -104,6 +103,15 @@ a:focus-visible {
   flex-direction: column;
   min-height: 100vh;
   width: 100%;
+  background-color: var(--cream);
+
+  --gold: var(--color-primary);
+  --gold-dark: var(--color-secondary);
+  --gold-tint: color-mix(in srgb, var(--color-primary) 16%, white);
+  --cream: color-mix(in srgb, var(--color-primary) 5%, #FBF7EF);
+  --cream-2: color-mix(in srgb, var(--color-primary) 11%, #FBF7EF);
+  --border: color-mix(in srgb, var(--color-primary) 24%, #E7DCC7);
+  --border-soft: color-mix(in srgb, var(--color-primary) 13%, #F0E7D6);
 }
 
 .layout-content {
@@ -696,6 +704,19 @@ a:focus-visible {
   background-color: var(--color-primary, var(--gold));
   padding: 12px 22px;
   border-radius: var(--radius-sm);
+}
+
+.btn-voltar-home-status.secundario {
+  background-color: transparent;
+  color: var(--ink);
+  border: 1px solid var(--border);
+}
+
+.botoes-agradecimento-flex {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
   margin-top: 16px;
 }
 
@@ -883,6 +904,69 @@ a:focus-visible {
 .cardapio-container {
   max-width: 1320px;
   margin: 0 auto;
+}
+
+/* Capa da pizzaria (Home) */
+.home-hero-capa {
+  border-radius: var(--radius-lg);
+  padding: 56px 40px;
+  margin-bottom: 32px;
+  color: white;
+  box-shadow: var(--shadow-md);
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.home-hero-logo {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid white;
+  margin-bottom: 6px;
+}
+
+.home-hero-capa h1 {
+  color: white;
+  font-size: clamp(1.8rem, 3.6vw, 2.6rem);
+}
+
+.home-hero-capa > p {
+  color: rgba(255, 255, 255, 0.88);
+  max-width: 560px;
+}
+
+/* Estrelas de avaliação média */
+.estrelas-media {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 6px 0;
+}
+
+.estrela {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.estrela.cheia { color: #FFD34D; }
+.estrela.vazia { color: rgba(255, 255, 255, 0.35); }
+
+.estrelas-texto {
+  margin-left: 8px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.ativo-toggle {
+  background-color: var(--ink) !important;
+  border-color: var(--ink) !important;
+  color: white !important;
 }
 
 .cardapio-banner {
@@ -1686,6 +1770,27 @@ a:focus-visible {
   font-size: 0.9rem;
 }
 
+.pix-tolerancia {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+
+.pix-progresso-track {
+  width: 100%;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background-color: var(--cream-2);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.pix-progresso-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.15s linear;
+}
+
 .pix-aviso-seguro {
   font-size: 0.78rem;
   color: var(--ink-faint);
@@ -2305,6 +2410,23 @@ a:focus-visible {
 }
 
 .status-botoes-grupo button.ativo {
+  background-color: var(--ink);
+  border-color: var(--ink);
+  color: white;
+}
+
+.periodo-btn {
+  padding: 9px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.periodo-btn.ativo {
   background-color: var(--ink);
   border-color: var(--ink);
   color: white;
