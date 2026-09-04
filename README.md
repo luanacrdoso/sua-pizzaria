@@ -1,26 +1,48 @@
-## Sua Pizzaria
+# 🍕 Pizzaria Callidus
 
-Plataforma SaaS White-Label Multi-Tenant de venda de pizzas online. Desenvolvido com React, TypeScript, Vite e Zustand.
+Software white-label para pizzarias: um site só, personalizável do zero,
+com pedidos por delivery, retirada e presencial (sistema de comanda e
+mesas).
 
-### Como rodar o projeto localmente
+## Tecnologias
 
-Instalar as dependências:
-`npm install`
+- React 18 + TypeScript
+- Vite
+- React Router
+- Zustand (estado global + persistência)
 
-Rodar o projeto em modo de desenvolvimento:
-`npm run dev`
+## Como rodar
 
-Abrir no navegador: http://localhost:5173
+```bash
+npm install
+npm run dev
+```
 
-### Como testar os fluxos
+Acesse `http://localhost:5173`.
 
-* **Portal Principal (Home):** Acesse http://localhost:5173 para visualizar a listagem de pizzarias, cadastrar novos compradores ou cadastrar uma nova pizzaria parceira.
-* **Cardápio da Pizzaria de Exemplo:** Acesse http://localhost:5173/store/callidus-pizzas para visualizar a loja de testes configurada no sistema.
+## Login do Admin do Site
 
-### Conta de teste cadastrada para o administrador da plataforma
+- **Usuário:** `calliduspizzaria`
+- **Senha:** `equipe3`
 
-* **Email:** admin@pizzashop.com
-* **Senha:** admin123
+O cardápio começa vazio — cadastre os itens pela aba "Cardápio" do painel
+antes de testar o fluxo de compra.
 
-### Aplicação Publicada: 
-* https://sua-pizzaria-three.vercel.app/
+## Perfis de acesso
+
+| Perfil | O que faz |
+|---|---|
+| Admin do Site | Personaliza a pizzaria, cardápio, pagamento, aprova funcionários, dashboard |
+| Cliente | Faz pedidos, chama garçom, paga, avalia |
+| Balcão | Registra pedidos de retirada |
+| Cozinha | Atualiza cardápio e status de preparo |
+| Garçom | Assume mesas, anota comandas, recebe gorjeta |
+| Motoboy | Assume e confirma entregas |
+
+Cadastro de funcionário fica pendente até o Admin do Site aprovar.
+
+## Observações
+
+- Não há backend: os dados ficam salvos no navegador (localStorage/
+  sessionStorage).
+- Pagamento via Pix é simulado.
