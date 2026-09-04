@@ -72,6 +72,8 @@ export const useCarrinhoStore = create<CarrinhoState>()(
     }),
     {
       name: 'callidus-carrinho',
+      // Carrinho também por aba/sessão — acompanha o login, que agora
+      // também é por aba (ver auth.store.ts).
       storage: createJSONStorage(() => sessionStorage)
     }
   )
