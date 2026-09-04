@@ -1,136 +1,49 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-
-export interface Comprador {
-  readonly email: string;
-  readonly nome: string;
-  readonly sobrenome: string;
-  readonly telefone: string;
-  readonly cep: string;
-  readonly rua: string;
-  readonly bairro: string;
-  readonly cidade: string;
-  readonly estado: string;
-  readonly numero: string;
-  readonly pontoReferencia?: string;
-  readonly fotoUrl?: string; // Foto de perfil do comprador
-}
-
-export interface DonoPizzaria {
-  readonly email: string;
-  readonly nomeDono: string;
-  readonly cnpj: string;
-  readonly nomePizzaria: string;
-  readonly descricao: string;
-  readonly corPrimaria: string;
-  readonly corSecundaria: string;
-  readonly telefone: string;
-  readonly cep: string;
-  readonly rua: string;
-  readonly bairro: string;
-  readonly cidade: string;
-  readonly estado: string;
-  readonly numero: string;
-  readonly logoUrl: string;
-  readonly chavePix?: string;
-}
-
-// CONTA FIXA DO ADMINISTRADOR DA PLATAFORMA
-const ADMIN_PLATAFORMA = {
-  email: 'admin@pizzashop.com',
-  senha: 'admin123'
-};
+import { persist, createJSONStorage } from 'zustand/middleware';
+import type { Papel } from '../types';
+import { useContasStore, ADMIN_SITE } from './contas.store';
 
 interface AuthState {
-  readonly usuarioLogado: { readonly tipo: 'comprador' | 'pizzaria' | 'admin'; readonly email: string } | null;
-  readonly compradores: readonly Comprador[];
-  readonly donos: readonly DonoPizzaria[];
-  readonly credenciais: readonly { readonly email: string; readonly senha: string }[];
-  readonly cadastrarComprador: (comprador: Comprador, senha: string) => void;
-  readonly cadastrarDono: (dono: DonoPizzaria, senha: string) => void;
-  readonly fazerLogin: (email: string, senha: string) => 'comprador' | 'pizzaria' | 'admin' | null;
+  readonly usuarioLogado: { readonly papel: Papel; readonly username: string } | null;
+  readonly fazerLogin: (username: string, senha: string) => 'ok' | 'senha_invalida' | 'pendente_aprovacao';
   readonly fazerLogout: () => void;
-  readonly atualizarComprador: (email: string, dados: Partial<Comprador>) => void;
-  readonly atualizarDono: (email: string, dados: Partial<DonoPizzaria>) => void;
-  readonly excluirContaComprador: (email: string) => void;
-  readonly excluirContaDono: (email: string) => void;
 }
 
+// Só guarda "quem está logado nesta aba". Fica em sessionStorage (por
+// aba/sessão do navegador), não em localStorage — assim dá pra testar
+// vários perfis ao mesmo tempo em abas diferentes (ex: cozinha numa aba,
+// garçom em outra, cliente em outra) sem uma aba "deslogar" a outra.
+// A lista de contas/cadastros em si mora em contas.store.ts, compartilhada
+// entre todas as abas.
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       usuarioLogado: null,
-      compradores: [],
-      donos: [],
-      credenciais: [],
 
-      cadastrarComprador: (comprador, senha) => {
-        set((state) => ({
-          compradores: [...state.compradores, comprador],
-          credenciais: [...state.credenciais, { email: comprador.email, senha }]
-        }));
-      },
-
-      cadastrarDono: (dono, senha) => {
-        set((state) => ({
-          donos: [...state.donos, dono],
-          credenciais: [...state.credenciais, { email: dono.email, senha }]
-        }));
-      },
-
-      fazerLogin: (email, senha) => {
-        // Valida primeiro se é a conta do super-admin geral
-        if (email === ADMIN_PLATAFORMA.email && senha === ADMIN_PLATAFORMA.senha) {
-          set({ usuarioLogado: { tipo: 'admin', email } });
-          return 'admin';
+      fazerLogin: (username, senha) => {
+        if (username === ADMIN_SITE.username && senha === ADMIN_SITE.senha) {
+          set({ usuarioLogado: { papel: 'admin', username } });
+          return 'ok';
         }
 
-        const conta = get().credenciais.find((c) => c.email === email && c.senha === senha);
-        if (!conta) return null;
+        const { credenciais, funcionarios } = useContasStore.getState();
+        const conta = credenciais.find((c) => c.username === username && c.senha === senha);
+        if (!conta) return 'senha_invalida';
 
-        const eComprador = get().compradores.some((c) => c.email === email);
-        const tipo = eComprador ? 'comprador' : 'pizzaria';
+        if (conta.papel !== 'cliente') {
+          const func = funcionarios.find((f) => f.username === username);
+          if (func && !func.aprovado) return 'pendente_aprovacao';
+        }
 
-        set({ usuarioLogado: { tipo, email } });
-        return tipo;
+        set({ usuarioLogado: { papel: conta.papel, username } });
+        return 'ok';
       },
 
-      fazerLogout: () => set({ usuarioLogado: null }),
-
-      atualizarComprador: (email, dados) => {
-        set((state) => ({
-          compradores: state.compradores.map((c) =>
-            c.email === email ? { ...c, ...dados } : c
-          )
-        }));
-      },
-
-      atualizarDono: (email, dados) => {
-        set((state) => ({
-          donos: state.donos.map((d) =>
-            d.email === email ? { ...d, ...dados } : d
-          )
-        }));
-      },
-
-      excluirContaComprador: (email) => {
-        set((state) => ({
-          compradores: state.compradores.filter((c) => c.email !== email),
-          credenciais: state.credenciais.filter((c) => c.email !== email),
-          usuarioLogado: state.usuarioLogado?.email === email ? null : state.usuarioLogado
-        }));
-      },
-
-      excluirContaDono: (email) => {
-        set((state) => ({
-          donos: state.donos.filter((d) => d.email !== email),
-          credenciais: state.credenciais.filter((c) => c.email !== email),
-          usuarioLogado: state.usuarioLogado?.email === email ? null : state.usuarioLogado
-        }));
-      }
+      fazerLogout: () => set({ usuarioLogado: null })
     }),
     {
-      name: 'sua-pizzaria-saas-auth'
+      name: 'callidus-auth',
+      storage: createJSONStorage(() => sessionStorage)
     }
   )
 );
