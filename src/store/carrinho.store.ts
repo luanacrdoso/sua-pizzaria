@@ -1,49 +1,42 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { Pizza } from '../features/cardapio/types/pizza';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import type { Pizza, Tamanho } from '../types';
 
 export interface ItemCarrinho {
   readonly idUnico: string;
-  readonly tenantId: string;
   readonly pizza: Pizza;
-  readonly tamanho: 'Brotinho' | 'Média' | 'Grande';
-  readonly borda: 'Sem Borda' | 'Catupiry' | 'Cheddar';
+  readonly tamanho: Tamanho;
   readonly extras: readonly string[];
   readonly observacoes: string;
   readonly quantidade: number;
   readonly precoUnitario: number;
-  readonly saboresSelecionados?: readonly string[]; // Para pizzas multi-sabor
+  readonly saboresSelecionados?: readonly string[];
 }
 
 interface CarrinhoState {
   readonly itens: readonly ItemCarrinho[];
-  readonly adicionarItem: (tenantId: string, item: Omit<ItemCarrinho, 'idUnico' | 'precoUnitario' | 'tenantId'>) => void;
+  readonly adicionarItem: (item: Omit<ItemCarrinho, 'idUnico' | 'precoUnitario'>, custoExtrasUnitario?: number) => void;
   readonly removerItem: (idUnico: string) => void;
   readonly atualizarQuantidade: (idUnico: string, quantidade: number) => void;
-  readonly esvaziarCarrinhoDoTenant: (tenantId: string) => void;
-  readonly obterTotalItens: (tenantId: string) => number;
-  readonly obterSubtotal: (tenantId: string) => number;
+  readonly esvaziarCarrinho: () => void;
+  readonly obterTotalItens: () => number;
+  readonly obterSubtotal: () => number;
 }
 
 export const useCarrinhoStore = create<CarrinhoState>()(
   persist(
     (set, get) => ({
-      itens: [] as ItemCarrinho[],
+      itens: [],
 
-      adicionarItem: (tenantId, novoItem) => {
+      adicionarItem: (novoItem, custoExtrasUnitario = 0) => {
         const saboresSlug = novoItem.saboresSelecionados ? novoItem.saboresSelecionados.join('-') : 'unico';
-        const idUnico = `${tenantId}-${novoItem.pizza.id}-${novoItem.tamanho}-${novoItem.borda}-${novoItem.extras.join('-')}-${saboresSlug}`;
+        const idUnico = `${novoItem.pizza.id}-${novoItem.tamanho}-${novoItem.extras.join('-')}-${saboresSlug}`;
 
-        // Custo com base no tamanho selecionado na pizza
         let precoBaseTamanho = Number(novoItem.pizza.precoBrotinho);
         if (novoItem.tamanho === 'Média') precoBaseTamanho = Number(novoItem.pizza.precoMedia);
         if (novoItem.tamanho === 'Grande') precoBaseTamanho = Number(novoItem.pizza.precoGrande);
 
-        const adicionalBorda = novoItem.borda !== 'Sem Borda' ? 6.50 : 0;
-
-        // O custo unitário leva em consideração os adicionais customizados do banco de dados (que calculamos na página)
-        // ou adicionamos +4.00 padrão por item se for extra livre não tabelado
-        const precoUnitario = precoBaseTamanho + adicionalBorda;
+        const precoUnitario = precoBaseTamanho + custoExtrasUnitario;
 
         const itensAtuais = get().itens;
         const itemExistente = itensAtuais.find((item) => item.idUnico === idUnico);
@@ -51,21 +44,15 @@ export const useCarrinhoStore = create<CarrinhoState>()(
         if (itemExistente) {
           set({
             itens: itensAtuais.map((item) =>
-              item.idUnico === idUnico
-                ? { ...item, quantidade: item.quantidade + novoItem.quantidade }
-                : item
+              item.idUnico === idUnico ? { ...item, quantidade: item.quantidade + novoItem.quantidade } : item
             )
           });
         } else {
-          set({
-            itens: [...itensAtuais, { ...novoItem, idUnico, tenantId, precoUnitario }]
-          });
+          set({ itens: [...itensAtuais, { ...novoItem, idUnico, precoUnitario }] });
         }
       },
 
-      removerItem: (idUnico) => set((state) => ({
-        itens: state.itens.filter((item) => item.idUnico !== idUnico)
-      })),
+      removerItem: (idUnico) => set((state) => ({ itens: state.itens.filter((item) => item.idUnico !== idUnico) })),
 
       atualizarQuantidade: (idUnico, quantidade) => {
         if (quantidade <= 0) {
@@ -73,28 +60,19 @@ export const useCarrinhoStore = create<CarrinhoState>()(
           return;
         }
         set((state) => ({
-          itens: state.itens.map((item) =>
-            item.idUnico === idUnico ? { ...item, quantidade } : item
-          )
+          itens: state.itens.map((item) => (item.idUnico === idUnico ? { ...item, quantidade } : item))
         }));
       },
 
-      esvaziarCarrinhoDoTenant: (tenantId) => set((state) => ({
-        itens: state.itens.filter((item) => item.tenantId !== tenantId)
-      })),
+      esvaziarCarrinho: () => set({ itens: [] }),
 
-      obterTotalItens: (tenantId) =>
-        get().itens
-          .filter((item) => item.tenantId === tenantId)
-          .reduce((acc, item) => acc + item.quantidade, 0),
+      obterTotalItens: () => get().itens.reduce((acc, item) => acc + item.quantidade, 0),
 
-      obterSubtotal: (tenantId) =>
-        get().itens
-          .filter((item) => item.tenantId === tenantId)
-          .reduce((acc, item) => acc + (item.precoUnitario * item.quantidade), 0)
+      obterSubtotal: () => get().itens.reduce((acc, item) => acc + item.precoUnitario * item.quantidade, 0)
     }),
     {
-      name: 'sua-pizzaria-saas-carrinhos'
+      name: 'callidus-carrinho',
+      storage: createJSONStorage(() => sessionStorage)
     }
   )
 );

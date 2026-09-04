@@ -1,26 +1,18 @@
-import { Outlet, useParams } from 'react-router-dom';
-import { useTenantStore } from '../store/tenant.store';
+import type { CSSProperties } from 'react';
+import { Outlet } from 'react-router-dom';
+import { useRestauranteStore } from '../store/restaurante.store';
 import { Navbar } from './Navbar';
 
 export function Layout() {
-  const { tenantId } = useParams<{ readonly tenantId: string }>();
-  const config = useTenantStore((state) => state.tenants.find((t) => t.id === tenantId));
+  const config = useRestauranteStore((state) => state.config);
 
-  if (!config) {
-    return (
-      <div className="status-container erro">
-        <p>Pizzaria não cadastrada na plataforma.</p>
-      </div>
-    );
-  }
-
-  const styleVariables = {
-    '--color-primary': config.corPrimaria,
-    '--color-secondary': config.corSecundaria,
-  } as React.CSSProperties;
+  const temaStyle: CSSProperties = {
+    ['--color-primary' as string]: config.corPrimaria,
+    ['--color-secondary' as string]: config.corSecundaria
+  };
 
   return (
-    <div className="layout-master" style={styleVariables}>
+    <div className="layout-master" style={temaStyle}>
       <Navbar />
       <main className="layout-content">
         <Outlet />
@@ -32,17 +24,16 @@ export function Layout() {
             <p>{config.descricao}</p>
           </div>
           <div>
-            <h5>Horário e Atendimento</h5>
-            <p>{config.diasFuncionamento}, das {config.horarioFuncionamento}</p>
-          </div>
-          <div>
-            <h5>Endereço da Pizzaria</h5>
+            <h5>Endereço</h5>
             <p>{config.endereco}</p>
           </div>
+          <div>
+            <h5>Funcionamento</h5>
+            <p>{config.diasFuncionamento}</p>
+            <p>{config.horarioFuncionamento}</p>
+          </div>
         </div>
-        <div className="footer-copyright">
-          © {new Date().getFullYear()} {config.nome} - Todos os direitos reservados. White-Label SaaS.
-        </div>
+        <div className="footer-copyright">© {new Date().getFullYear()} {config.nome} — Todos os direitos reservados.</div>
       </footer>
     </div>
   );
